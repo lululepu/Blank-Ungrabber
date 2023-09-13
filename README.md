@@ -3,17 +3,17 @@
 ![GitHub](https://img.shields.io/github/license/lululepu/Blank-Ungrabber)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 
-Decrypt and analyze a Blank Ungrabber executable.
+Decrypt and analyze a Blank Grabber executable.
 
 Thanks to extremecoders-re for pyinstxtractor
 
 ## About
 
-This Python script is designed to decrypt and analyze Blank Ungrabber executables. It extracts and decrypts the contents, deobfuscates code, and identifies potential Discord webhooks used by the executable.
+This Python script is designed to decrypt and analyze Blank Grabber executables. It extracts and decrypts the contents, deobfuscates code, and identifies potential Discord webhooks used by the executable.
 
 ## Features
 
-- Decrypt Blank Ungrabber executables
+- Decrypt Blank Grabber executables
 - Deobfuscate code
 - Identify Discord webhooks
 - Test identified webhooks
