@@ -77,7 +77,7 @@ try:
     bzip = os.path.join(f'{os.path.basename(executable)}_extracted\\blank.aes')
     log('[+] Got Key and IV')
 except:
-    log('[!] Invalid file if you think its an error please contact on discord: lululepu.')
+    log('[!] Invalid file if you think its an error please contact on discord: lululepu.off')
 
 
 def decrypt(key, iv, ciphertext):
@@ -97,7 +97,7 @@ try:
     parsed: str = lzma.decompress(b'\xFD\x37\x7A\x58\x5A\x00'+content.split(b'\xFD\x37\x7A\x58\x5A\x00')[-1])
     log('[+] Decrypted the blank file')
 except:
-    log('[!] An error occured while decrypting the file please contact on discord: lululepu.')
+    log('[!] An error occured while decrypting the file please contact on discord: lululepu.off')
 
 # Deobfuscate the code from the decrypted blank.aes zip file
 try:
@@ -112,7 +112,7 @@ try:
       content = f.read()
     log('[+] Deobfuscated the code')
 except:
-    log('[!] Error occured while deobfuscating please contact on discord: lululepu.')
+    log('[!] Error occured while deobfuscating please contact on discord: lululepu.off')
 
 # Get the webhook in all deobfuscated file (its compiled python)
 for i in strings(content):
