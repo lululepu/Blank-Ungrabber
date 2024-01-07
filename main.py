@@ -1,6 +1,7 @@
-import os, base64, zlib, shutil, string, codecs, lzma, httpx, time, ast, io, zipfile
 from pystyle import *
+from typing import Generator
 from Crypto.Cipher import AES
+import os, base64, zlib, shutil, string, codecs, lzma, httpx, time, ast, io, zipfile, utils, sys
 
 if os.name == 'nt':
   os.system('cls')  
@@ -21,10 +22,12 @@ executable=input('\n'+Colorate.Vertical(Colors.red_to_yellow, 'Executable Path:'
 
 be=time.time()
 
+extracted = utils.Extract(executable)
+
 def log(message) -> None:
     print(Colorate.Vertical(Colors.red_to_yellow, message))
 
-def strings(data: str):
+def strings(data: str) -> Generator:
     data = str(data)
     result = ''
     for c in data:
@@ -46,48 +49,46 @@ def get_var(code: str, var: str) -> str: # Get a variable from a given code by n
                     return node.value.value
     return
 
-os.system('python extract.py "'+executable+'" >nul 2>&1') # Extract the pyinstaller file
+def get_file(name) -> bytearray: # Get file from the files list
+    if extracted[name]:
+        return extracted[name]
+    return False
 
-if not os.path.isdir(f'{os.path.basename(executable)}_extracted'):
+
+if not os.path.isfile(executable):
     log('Please input a valid file')
-    quit()
-EXT = f'{os.path.basename(executable)}_extracted'
-if not os.path.isfile(f'{EXT}\\blank.aes'):
+    sys.exit(1)
+if not get_file('blank.aes'):
     log('This is not a blank grabber file')
-    quit()
+    sys.exit(1)
 
 # Try to get the file containing the key and IV for decrypting
 try:
-    f=open(f'{EXT}\\loader-o.pyc', 'rb')
-    data=f.read()
-    f.close()
+    data: str = get_file('loader-o')
 except:
-    for i in os.listdir(EXT):
-        if len(i) >= 40 and i.endswith('.pyc'):
-            f=open(f'{EXT}\\{i}', 'rb')
-            data=f.read()
-            f.close()
+    for i,v in extracted.items():
+        if len(i) >= 35:
+            data: str = v
 
 # Parse the key and iv from the file
-data=data.split(b'stub-oz,')[-1].split(b'\x63\x03')[0].split(b'\x10')
+data = data.split(b'stub-oz,')[-1].split(b'\x63\x03')[0].split(b'\x10')
 print('')
 try:
     key = base64.b64decode(data[0].split(b'\xDA')[0])
     iv = base64.b64decode(data[-1])
-    bzip = os.path.join(f'{os.path.basename(executable)}_extracted\\blank.aes')
     log('[+] Got Key and IV')
 except:
     log('[!] Invalid file if you think its an error please contact on discord: lululepu.off')
+    sys.exit(1)
 
 
-def decrypt(key, iv, ciphertext):
+def decrypt(key, iv, ciphertext) -> bytes:
     cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
     decrypted = cipher.decrypt(ciphertext)
     return decrypted
 
 # Decrypt the blank.aes file
-with open(bzip, 'rb') as f:
-    ciphertext = f.read()
+ciphertext = get_file('blank.aes')
 try:
     decrypted = decrypt(key, iv, zlib.decompress(ciphertext[::-1]))
     with io.BytesIO(decrypted) as zip_buffer:
@@ -98,6 +99,7 @@ try:
     log('[+] Decrypted the blank file')
 except:
     log('[!] An error occured while decrypting the file please contact on discord: lululepu.off')
+    sys.exit(1)
 
 # Deobfuscate the code from the decrypted blank.aes zip file
 try:
@@ -106,13 +108,11 @@ try:
     ______ = get_var(parsed, '______')
     _______ = get_var(parsed, '_______')
     deobfuscated = base64.b64decode(codecs.decode(____, 'rot13')+_____+______[::-1]+_______)
-    with open('last.pyc', 'wb') as f:
-      f.write(deobfuscated)
-    with open('last.pyc', errors='ignore') as f:
-      content = f.read()
+    content = deobfuscated.decode('utf-8', errors='replace')
     log('[+] Deobfuscated the code')
 except:
     log('[!] Error occured while deobfuscating please contact on discord: lululepu.off')
+    sys.exit(1)
 
 # Get the webhook in all deobfuscated file (its compiled python)
 for i in strings(content):
@@ -123,12 +123,14 @@ for i in strings(content):
             webhook=a.decode()
     except:...
 
+if not webhook:
+    log('[?] Webhook not found please contact on discord: lululepu.off')
+    sys.exit(1)
+
 # Clean/End of the process
 log('[*] Cleaning files...')
-os.remove('last.pyc')
-shutil.rmtree(f'{os.path.basename(executable)}_extracted')
 log('[+] Got the webhook')
-log('[*] Found in {:0.5f}'.format(time.time()-be))
+log('[*] Found in {:0.5f}'.format(time.time() - be))
 log('[*] Testing the webhook...')
 
 # Test the webhook
@@ -137,6 +139,6 @@ if res.status_code != 404:
     log('[+] The webhooks is working :')
     log(webhook)
 else:
-    rp=input(Colorate.Vertical(Colors.red_to_yellow, '[!] The webhooks is not working do you want to get it anyway [y/n]: ')+' ')
+    rp: str = input(Colorate.Vertical(Colors.red_to_yellow, '[!] The webhooks is not working do you want to get it anyway [y/n]: ')+' ')
     if rp.lower() == 'y':
         log(webhook)
