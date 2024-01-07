@@ -128,7 +128,6 @@ if not webhook:
     sys.exit(1)
 
 # Clean/End of the process
-log('[*] Cleaning files...')
 log('[+] Got the webhook')
 log('[*] Found in {:0.5f}'.format(time.time() - be))
 log('[*] Testing the webhook...')
