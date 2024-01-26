@@ -7,7 +7,7 @@ Decrypt and analyze a Blank Grabber executable.
 
 Thanks to extremecoders-re for pyinstxtractor
 
-You can now use ungrabber website its free and easy to use work with BlankGrabber, CrealGrabber, LunaGrabber, PySilon, BCStealer, CStealer, Empyrean : https;//lululepu.fr
+You can now use ungrabber website its free and easy to use work with BlankGrabber, CrealGrabber, LunaGrabber, PySilon, BCStealer, CStealer, Empyrean : https://lululepu.fr
 
 ## About
 
