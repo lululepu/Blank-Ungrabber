@@ -33,6 +33,5 @@ This Python script is designed to decrypt and analyze Blank Grabber executables.
 ```cmd
 git clone https://github.com/lululepu/Blank-Ungrabber
 cd Blank-Ungrabber
-pip install -r requirements.txt
 py main.py
 ```
