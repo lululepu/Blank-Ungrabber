@@ -1,31 +1,52 @@
-from pystyle import *
+from pystyle import *  
 from typing import Generator
 from Crypto.Cipher import AES
-import os, base64, zlib, shutil, string, codecs, lzma, httpx, time, ast, io, zipfile, utils, sys
+import os
+import base64
+import zlib
+import time
+import string
+import codecs
+import lzma
+import httpx
+import ast
+import io
+import zipfile
+import sys
+from utils import Extract  
+
 
 if os.name == 'nt':
-  os.system('cls')  
+    os.system('cls')
 else:
-  os.system('clear')
+    os.system('clear')
 
-asciiart='''______ _             _           _   _                       _     _               
+
+asciiart = '''
+______ _             _           _   _                       _     _               
 | ___ \ |           | |         | | | |                     | |   | |              
 | |_/ / | __ _ _ __ | | ________| | | |_ __   __ _ _ __ __ _| |__ | |__   ___ _ __ 
 | ___ \ |/ _` | '_ \| |/ /______| | | | '_ \ / _` | '__/ _` | '_ \| '_ \ / _ \ '__|
 | |_/ / | (_| | | | |   <       | |_| | | | | (_| | | | (_| | |_) | |_) |  __/ |   
 \____/|_|\__,_|_| |_|_|\_\       \___/|_| |_|\__, |_|  \__,_|_.__/|_.__/ \___|_|   
-                                              __/ |                                
+                                              __/ |                               
                                              |___/                                 '''
+
 System.Title('Blank-Ungrabber')
 print(Colorate.Vertical(Colors.yellow_to_red, Center.XCenter(asciiart)))
-executable=input('\n'+Colorate.Vertical(Colors.red_to_yellow, 'Executable Path:')+' ')
 
-be=time.time()
 
-extracted = utils.Extract(executable)
+executable = input('\n' + Colorate.Vertical(Colors.red_to_yellow, 'Executable Path:') + ' ')
+
+start_time = time.time()
+
+
+extracted = Extract(executable)
+
 
 def log(message) -> None:
     print(Colorate.Vertical(Colors.red_to_yellow, message))
+
 
 def strings(data: str) -> Generator:
     data = str(data)
@@ -40,7 +61,8 @@ def strings(data: str) -> Generator:
     if len(result) >= 4:
         yield result
 
-def get_var(code: str, var: str) -> str: # Get a variable from a given code by name
+
+def get_var(code: str, var: str) -> str:
     tree = ast.parse(code)
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
@@ -49,8 +71,9 @@ def get_var(code: str, var: str) -> str: # Get a variable from a given code by n
                     return node.value.value
     return
 
-def get_file(name) -> bytearray: # Get file from the files list
-    if extracted[name]:
+
+def get_file(name) -> bytearray:
+    if name in extracted:
         return extracted[name]
     return False
 
@@ -62,23 +85,24 @@ if not get_file('blank.aes'):
     log('This is not a blank grabber file')
     sys.exit(1)
 
-# Try to get the file containing the key and IV for decrypting
-try:
-    data: str = get_file('loader-o')
-except:
-    for i,v in extracted.items():
-        if len(i) >= 35:
-            data: str = v
 
-# Parse the key and iv from the file
+try:
+    data = get_file('loader-o')
+except:
+    for i, v in extracted.items():
+        if len(i) >= 35:
+            data = v
+
+
 data = data.split(b'stub-oz,')[-1].split(b'\x63\x03')[0].split(b'\x10')
 print('')
+
 try:
     key = base64.b64decode(data[0].split(b'\xDA')[0])
     iv = base64.b64decode(data[-1])
     log('[+] Got Key and IV')
 except:
-    log('[!] Invalid file if you think its an error please contact on discord: lululepu.off')
+    log('[!] Invalid file. If you think it’s an error, please contact via Discord: lululepu.off')
     sys.exit(1)
 
 
@@ -87,57 +111,59 @@ def decrypt(key, iv, ciphertext) -> bytes:
     decrypted = cipher.decrypt(ciphertext)
     return decrypted
 
-# Decrypt the blank.aes file
+
 ciphertext = get_file('blank.aes')
 try:
     decrypted = decrypt(key, iv, zlib.decompress(ciphertext[::-1]))
     with io.BytesIO(decrypted) as zip_buffer:
-        with zipfile.ZipFile(zip_buffer, 'r') as zip:
-            with zip.open('stub-o.pyc', 'r') as f:
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:
+            with zip_ref.open('stub-o.pyc', 'r') as f:
                 content = f.read()
-    parsed: str = lzma.decompress(b'\xFD\x37\x7A\x58\x5A\x00'+content.split(b'\xFD\x37\x7A\x58\x5A\x00')[-1])
+    parsed = lzma.decompress(b'\xFD\x37\x7A\x58\x5A\x00' + content.split(b'\xFD\x37\x7A\x58\x5A\x00')[-1])
     log('[+] Decrypted the blank file')
 except:
-    log('[!] An error occured while decrypting the file please contact on discord: lululepu.off')
+    log('[!] An error occurred while decrypting the file. Please contact via Discord: lululepu.off')
     sys.exit(1)
 
-# Deobfuscate the code from the decrypted blank.aes zip file
+
 try:
     ____ = get_var(parsed, '____')
     _____ = get_var(parsed, '_____')
     ______ = get_var(parsed, '______')
     _______ = get_var(parsed, '_______')
-    deobfuscated = base64.b64decode(codecs.decode(____, 'rot13')+_____+______[::-1]+_______)
+    deobfuscated = base64.b64decode(codecs.decode(____, 'rot13') + _____ + ______[::-1] + _______)
     content = deobfuscated.decode('utf-8', errors='replace')
     log('[+] Deobfuscated the code')
 except:
-    log('[!] Error occured while deobfuscating please contact on discord: lululepu.off')
+    log('[!] Error occurred during deobfuscation. Please contact via Discord: lululepu.off')
     sys.exit(1)
 
-# Get the webhook in all deobfuscated file (its compiled python)
+
+webhook = None
 for i in strings(content):
-    i=bytes(i, encoding='utf8')
+    i = bytes(i, encoding='utf8')
     try:
-        a=base64.b64decode(i)
-        if 'discord.com/api/webhooks/' in a.decode():
-            webhook=a.decode()
-    except:...
+        decoded = base64.b64decode(i)
+        if 'discord.com/api/webhooks/' in decoded.decode():
+            webhook = decoded.decode()
+    except:
+        pass
 
 if not webhook:
-    log('[?] Webhook not found please contact on discord: lululepu.off')
+    log('[?] Webhook not found. Please contact via Discord: lululepu.off')
     sys.exit(1)
 
-# Clean/End of the process
+
 log('[+] Got the webhook')
-log('[*] Found in {:0.5f}'.format(time.time() - be))
+log('[*] Process completed in {:0.5f} seconds'.format(time.time() - start_time))
 log('[*] Testing the webhook...')
 
-# Test the webhook
-res=httpx.get(webhook)
+
+res = httpx.get(webhook)
 if res.status_code != 404:
-    log('[+] The webhooks is working :')
+    log('[+] The webhook is working:')
     log(webhook)
 else:
-    rp: str = input(Colorate.Vertical(Colors.red_to_yellow, '[!] The webhooks is not working do you want to get it anyway [y/n]: ')+' ')
+    rp = input(Colorate.Vertical(Colors.red_to_yellow, '[!] The webhook is not working. Do you want to get it anyway [y/n]: ') + ' ')
     if rp.lower() == 'y':
         log(webhook)
